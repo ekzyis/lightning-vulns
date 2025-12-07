@@ -67,6 +67,45 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 - https://morehouse.github.io/lightning/lnd-gossip-timestamp-filter-dos/
 
+## LND: Excessive Failback Exploit
+
+> LND 0.17.5 and below contain a bug in the on-chain resolution logic that can be exploited to steal funds. For the attack to be practical the attacker must be able to force a restart of the victim node, perhaps via an unpatched DoS vector. Update to at least LND 0.18.0 to protect your node.
+
+**Disclosure**: March 4, 2025
+
+**Patched**: lnd 0.18.0
+
+**References**:
+
+- https://morehouse.github.io/lightning/lnd-excessive-failback-exploit/
+- https://delvingbitcoin.org/t/disclosure-lnd-excessive-failback-exploit/1493
+
+## LDK: Duplicate HTLC Force Close Griefing
+
+> LDK 0.1 and below are vulnerable to a griefing attack that causes all of the victim’s channels to be force closed. Update to LDK 0.1.1 to protect your channels.
+
+**Disclosure**: January 29, 2025
+
+**Patched**: ldk 0.1.1
+
+**References**:
+
+- https://morehouse.github.io/lightning/ldk-duplicate-htlc-force-close-griefing/
+- https://delvingbitcoin.org/t/disclosure-ldk-duplicate-htlc-force-close-griefing/1410
+
+## LDK: Invalid Claims Liquidity Griefing
+
+> LDK 0.0.125 and below are vulnerable to a liquidity griefing attack against anchor channels. The attack locks up funds such that they can only be recovered by manually constructing and broadcasting a valid claim transaction. Affected users can unlock their funds by upgrading to LDK 0.1 and replaying the sequence of commitment and HTLC transactions that led to the lock up.
+
+**Disclosure**: January 23, 2025
+
+**Patched**: ldk 0.1
+
+**References**:
+
+- https://morehouse.github.io/lightning/ldk-invalid-claims-liquidity-griefing/
+- https://delvingbitcoin.org/t/disclosure-ldk-invalid-claims-liquidity-griefing/1400
+
 ## DoS: LND Onion Bomb
 
 [**CVE-2024-38359**](https://nvd.nist.gov/vuln/detail/CVE-2024-38359) (6.5)
@@ -82,6 +121,43 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 - https://morehouse.github.io/lightning/lnd-onion-bomb/
 - https://github.com/lightningnetwork/lnd/security/advisories/GHSA-9gxx-58q6-42p7
 - https://delvingbitcoin.org/t/dos-disclosure-lnd-onion-bomb/979
+
+## DoS: Channel Open Race in CLN
+
+> CLN versions between 23.02 and 23.05.2 are susceptible to a DoS attack involving the exploitation of a race condition during channel opens. If you are running any version in this range, your funds may be at risk! Update to at least 23.08 to help protect your node.
+
+**Disclosure**: January 8, 2024
+
+**Patched**: cln 23.08
+
+**References**:
+
+- https://morehouse.github.io/lightning/cln-channel-open-race/
+- https://delvingbitcoin.org/t/dos-disclosure-channel-open-race-in-cln/385
+
+## Invoice Parsing Bugs in CLN
+
+> Several invoice parsing bugs were fixed in CLN 23.11, including bugs that caused crashes, undefined behavior, and use of uninitialized memory. These bugs could be reliably triggered by specially crafted invoices, enabling a malicious counterparty to crash the victim’s node upon invoice payment.
+
+**Disclosure**: December 8, 2023
+
+**Patched**: cln 23.11
+
+**References**:
+
+- https://morehouse.github.io/lightning/cln-invoice-parsing/
+
+## DoS: Fake Lightning Channels
+
+> Lightning nodes are susceptible to a DoS attack involving the creation of large numbers of fake channels.
+
+**Disclosure**: August 23, 2023
+
+**Patched**: lnd 0.16.0, cln 23.02, eclair 0.9.0, ldk 0.0.114
+
+**References**:
+
+- https://morehouse.github.io/lightning/fake-channel-dos/
 
 ## btcd Block Parsing Bug
 
