@@ -159,7 +159,7 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 - https://morehouse.github.io/lightning/fake-channel-dos/
 
-## btcd Block Parsing Bug
+## Witness Block Parsing DoS Vulnerability
 
 [**CVE-2022-39389**](https://nvd.nist.gov/vuln/detail/CVE-2022-39389) (6.5-8.2)
 
@@ -167,7 +167,7 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 **Disclosure**: Nov 1, 2022
 
-**Patched**: lnd v0.23.3, lnd v0.15.4-beta
+**Patched**: btcd v0.23.3, lnd v0.15.4-beta
 
 **References**:
 
