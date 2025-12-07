@@ -2,6 +2,45 @@
 
 A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
+## Infinite Inbox DoS
+
+> Large internal queue sizes and an unrestricted incoming connection policy enabled attackers to quickly exhaust LND’s available memory and cause it to crash or hang.
+
+**Disclosure**: Dec 4, 2025
+
+**Patched**: lnd 0.19.0
+
+**References**:
+
+- https://delvingbitcoin.org/t/disclosure-critical-vulnerabilities-fixed-in-lnd-0-19-0/2145
+- https://morehouse.github.io/lightning/lnd-infinite-inbox-dos/
+
+## Excessive Failback Exploit #2
+
+> A variant of the [previously disclosed](https://delvingbitcoin.org/t/disclosure-lnd-excessive-failback-exploit/1493) excessive failback bug could still be exploited to steal funds from LND nodes. The variant was discovered while drafting an [update](https://github.com/lightning/bolts/pull/1233) to BOLT 5 that was intended to help prevent similar vulnerabilities in the future.
+
+**Disclosure**: Dec 4, 2025
+
+**Patched**: lnd 0.19.0
+
+**References**:
+
+- https://delvingbitcoin.org/t/disclosure-critical-vulnerabilities-fixed-in-lnd-0-19-0/2145
+- https://morehouse.github.io/lightning/lnd-excessive-failback-exploit-2/
+
+## Replacement Stalling Attack
+
+> Weaknesses in LND’s sweeper system enabled an attacker to stall LND’s attempts at claiming expired HTLCs on chain. After stalling for 80 blocks, the attacker could steal essentially the entire channel balance. This vulnerability was discovered during code review of LND’s sweeper rewrite in 2024.
+
+**Disclosure**: Dec 4, 2025
+
+**Patched**: lnd 0.19.0
+
+**References**:
+
+- https://delvingbitcoin.org/t/disclosure-critical-vulnerabilities-fixed-in-lnd-0-19-0/2145
+- https://morehouse.github.io/lightning/lnd-replacement-stalling-attack/
+
 ## Eclair Preimage Extraction Exploit
 
 > The vulnerability in Eclair existed in how it monitored the blockchain for preimages during a force close. Eclair would only check for HTLCs that existed in its local commitment transaction — its own current version of the channel’s state. The code incorrectly assumed this local state would always contain a complete list of all possible HTLCs.
