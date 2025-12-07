@@ -2,6 +2,22 @@
 
 A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
+- [LND: Infinite Inbox DoS](#lnd-infinite-inbox-dos)
+- [LND: Excessive Failback Exploit #2](#lnd-excessive-failback-exploit-2)
+- [LND: Replacement Stalling Attack](#lnd-replacement-stalling-attack)
+- [Eclair: Preimage Extraction Exploit](#eclair-preimage-extraction-exploit)
+- [LND: gossip_timestamp_filter DoS](#lnd-gossip_timestamp_filter-dos)
+- [LND: Excessive Failback Exploit](#lnd-excessive-failback-exploit)
+- [LDK: Duplicate HTLC Force Close Griefing](#ldk-duplicate-htlc-force-close-griefing)
+- [LDK: Invalid Claims Liquidity Griefing](#ldk-invalid-claims-liquidity-griefing)
+- [DoS: LND Onion Bomb](#dos-lnd-onion-bomb)
+- [DoS: Channel Open Race in CLN](#dos-channel-open-race-in-cln)
+- [Invoice Parsing Bugs in CLN](#invoice-parsing-bugs-in-cln)
+- [DoS: Fake Lightning Channels](#dos-fake-lightning-channels)
+- [Witness Block Parsing DoS Vulnerability](#witness-block-parsing-dos-vulnerability)
+- [Dust HTLC Exposure](#dust-htlc-exposure)
+- [Missing Funding Transaction Output Check](#missing-funding-transaction-output-check)
+
 ## LND: Infinite Inbox DoS
 
 > Large internal queue sizes and an unrestricted incoming connection policy enabled attackers to quickly exhaust LND’s available memory and cause it to crash or hang.
