@@ -55,6 +55,18 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 - https://morehouse.github.io/lightning/eclair-preimage-extraction-exploit/
 
+## LND: gossip_timestamp_filter DoS
+
+> LND 0.18.2 and below are vulnerable to a denial-of-service (DoS) attack involving repeated gossip requests for the full Lightning Network graph. The attack is trivial to execute and can cause LND to run out of memory (OOM) and crash or hang. You can protect your node by updating to at least LND 0.18.3 or by setting `ignore-historical-gossip-filters=true` in your node configuration.
+
+**Disclosure**: July 22, 2025
+
+**Patched**: lnd 0.18.3
+
+**References**:
+
+- https://morehouse.github.io/lightning/lnd-gossip-timestamp-filter-dos/
+
 ## DoS: LND Onion Bomb
 
 [**CVE-2024-38359**](https://nvd.nist.gov/vuln/detail/CVE-2024-38359) (6.5)
