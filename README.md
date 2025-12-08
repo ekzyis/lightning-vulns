@@ -2,6 +2,10 @@
 
 A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
+> Because in the end it doesn’t matter how feature-rich and easy-to-use the Lightning Network is if it can’t keep user funds safe.
+
+― Matt Morehouse, [_DoS: Fake Lightning Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
+
 - [LND: Infinite Inbox DoS](#lnd-infinite-inbox-dos)
 - [LND: Excessive Failback Exploit #2](#lnd-excessive-failback-exploit-2)
 - [LND: Replacement Stalling Attack](#lnd-replacement-stalling-attack)
