@@ -192,7 +192,9 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 **References**:
 
 - https://github.com/lightningnetwork/lnd/issues/7096
+- https://github.com/btcsuite/btcd/issues/1906
 - https://github.com/lightningnetwork/lnd/pull/7098
+- https://github.com/btcsuite/btcd/pull/1907
 - https://github.com/lightningnetwork/lnd/security/advisories/GHSA-hc82-w9v8-83pr
 
 ## Dust HTLC Exposure
