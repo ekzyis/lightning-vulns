@@ -19,6 +19,7 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 - [Invoice Parsing Bugs in CLN](#invoice-parsing-bugs-in-cln)
 - [DoS: Fake Lightning Channels](#dos-fake-lightning-channels)
 - [Witness Block Parsing DoS Vulnerability](#witness-block-parsing-dos-vulnerability)
+- [Erroneous Witness Size Check](#erroneous-witness-size-check)
 - [Dust HTLC Exposure](#dust-htlc-exposure)
 - [Missing Funding Transaction Output Check](#missing-funding-transaction-output-check)
 
@@ -196,6 +197,24 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 - https://github.com/lightningnetwork/lnd/pull/7098
 - https://github.com/btcsuite/btcd/pull/1907
 - https://github.com/lightningnetwork/lnd/security/advisories/GHSA-hc82-w9v8-83pr
+
+## Erroneous Witness Size Check
+
+> A bug would cause nodes to be unable to parse a given block from the wire. The block would be properly accepted if fed in via other mechanisms.
+>
+> The issue here is that the old checks for the maximum witness size, circa segwit v0 where placed in the wire package _as well_ as the tx engine. This check should only be in the engine, since it's properly gated by other related scrip validation flags.
+>
+> The fix itself is simple: limit witnesses only based on the maximum block size in bytes, or ~4MB.
+
+**Disclosure**: Oct 9, 2022
+
+**Patched**: btcd v0.23.2, lnd v0.15.2-beta
+
+**References**:
+
+- https://github.com/lightningnetwork/lnd/issues/7002
+- https://github.com/btcsuite/btcd/pull/1896
+- https://github.com/lightningnetwork/lnd/pull/7004
 
 ## Dust HTLC Exposure
 
