@@ -2,9 +2,11 @@
 
 A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
-> Because in the end it doesn’t matter how feature-rich and easy-to-use the Lightning Network is if it can’t keep user funds safe.
+> Because in the end it doesn’t matter how feature-rich and easy-to-use the
+> Lightning Network is if it can’t keep user funds safe.
 
-― Matt Morehouse, [_DoS: Fake Lightning Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
+― Matt Morehouse, [_DoS: Fake Lightning
+Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 
 - [LND: Infinite Inbox DoS](#lnd-infinite-inbox-dos)
 - [LND: Excessive Failback Exploit #2](#lnd-excessive-failback-exploit-2)
@@ -26,7 +28,9 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## LND: Infinite Inbox DoS
 
-> Large internal queue sizes and an unrestricted incoming connection policy enabled attackers to quickly exhaust LND’s available memory and cause it to crash or hang.
+> Large internal queue sizes and an unrestricted incoming connection policy
+> enabled attackers to quickly exhaust LND’s available memory and cause it to
+> crash or hang.
 
 **Disclosure**: Dec 4, 2025
 
@@ -39,7 +43,12 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## LND: Excessive Failback Exploit #2
 
-> A variant of the [previously disclosed](https://delvingbitcoin.org/t/disclosure-lnd-excessive-failback-exploit/1493) excessive failback bug could still be exploited to steal funds from LND nodes. The variant was discovered while drafting an [update](https://github.com/lightning/bolts/pull/1233) to BOLT 5 that was intended to help prevent similar vulnerabilities in the future.
+> A variant of the [previously
+> disclosed](https://delvingbitcoin.org/t/disclosure-lnd-excessive-failback-exploit/1493)
+> excessive failback bug could still be exploited to steal funds from LND nodes.
+> The variant was discovered while drafting an
+> [update](https://github.com/lightning/bolts/pull/1233) to BOLT 5 that was
+> intended to help prevent similar vulnerabilities in the future.
 
 **Disclosure**: Dec 4, 2025
 
@@ -52,7 +61,10 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## LND: Replacement Stalling Attack
 
-> Weaknesses in LND’s sweeper system enabled an attacker to stall LND’s attempts at claiming expired HTLCs on chain. After stalling for 80 blocks, the attacker could steal essentially the entire channel balance. This vulnerability was discovered during code review of LND’s sweeper rewrite in 2024.
+> Weaknesses in LND’s sweeper system enabled an attacker to stall LND’s attempts
+> at claiming expired HTLCs on chain. After stalling for 80 blocks, the attacker
+> could steal essentially the entire channel balance. This vulnerability was
+> discovered during code review of LND’s sweeper rewrite in 2024.
 
 **Disclosure**: Dec 4, 2025
 
@@ -65,9 +77,18 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## Eclair: Preimage Extraction Exploit
 
-> The vulnerability in Eclair existed in how it monitored the blockchain for preimages during a force close. Eclair would only check for HTLCs that existed in its local commitment transaction — its own current version of the channel’s state. The code incorrectly assumed this local state would always contain a complete list of all possible HTLCs.
+> The vulnerability in Eclair existed in how it monitored the blockchain for
+> preimages during a force close. Eclair would only check for HTLCs that existed
+> in its local commitment transaction — its own current version of the channel’s
+> state. The code incorrectly assumed this local state would always contain a
+> complete list of all possible HTLCs.
 >
-> However, a malicious channel partner could broadcast an older, but still valid, commitment transaction. This older state could contain an HTLC that the victim’s node had already removed from its own local state. When the attacker claimed this HTLC on-chain with a preimage, the victim’s Eclair node would ignore it because the HTLC wasn’t in its local records, causing the victim to lose the funds.
+> However, a malicious channel partner could broadcast an older, but still
+> valid, commitment transaction. This older state could contain an HTLC that the
+> victim’s node had already removed from its own local state. When the attacker
+> claimed this HTLC on-chain with a preimage, the victim’s Eclair node would
+> ignore it because the HTLC wasn’t in its local records, causing the victim to
+> lose the funds.
 
 **Disclosure**: September 23, 2025
 
@@ -79,7 +100,11 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## LND: gossip_timestamp_filter DoS
 
-> LND 0.18.2 and below are vulnerable to a denial-of-service (DoS) attack involving repeated gossip requests for the full Lightning Network graph. The attack is trivial to execute and can cause LND to run out of memory (OOM) and crash or hang. You can protect your node by updating to at least LND 0.18.3 or by setting `ignore-historical-gossip-filters=true` in your node configuration.
+> LND 0.18.2 and below are vulnerable to a denial-of-service (DoS) attack
+> involving repeated gossip requests for the full Lightning Network graph. The
+> attack is trivial to execute and can cause LND to run out of memory (OOM) and
+> crash or hang. You can protect your node by updating to at least LND 0.18.3 or
+> by setting `ignore-historical-gossip-filters=true` in your node configuration.
 
 **Disclosure**: July 22, 2025
 
@@ -91,7 +116,10 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## LND: Excessive Failback Exploit
 
-> LND 0.17.5 and below contain a bug in the on-chain resolution logic that can be exploited to steal funds. For the attack to be practical the attacker must be able to force a restart of the victim node, perhaps via an unpatched DoS vector. Update to at least LND 0.18.0 to protect your node.
+> LND 0.17.5 and below contain a bug in the on-chain resolution logic that can
+> be exploited to steal funds. For the attack to be practical the attacker must
+> be able to force a restart of the victim node, perhaps via an unpatched DoS
+> vector. Update to at least LND 0.18.0 to protect your node.
 
 **Disclosure**: March 4, 2025
 
@@ -104,7 +132,9 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## LDK: Duplicate HTLC Force Close Griefing
 
-> LDK 0.1 and below are vulnerable to a griefing attack that causes all of the victim’s channels to be force closed. Update to LDK 0.1.1 to protect your channels.
+> LDK 0.1 and below are vulnerable to a griefing attack that causes all of the
+> victim’s channels to be force closed. Update to LDK 0.1.1 to protect your
+> channels.
 
 **Disclosure**: January 29, 2025
 
@@ -117,7 +147,11 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## LDK: Invalid Claims Liquidity Griefing
 
-> LDK 0.0.125 and below are vulnerable to a liquidity griefing attack against anchor channels. The attack locks up funds such that they can only be recovered by manually constructing and broadcasting a valid claim transaction. Affected users can unlock their funds by upgrading to LDK 0.1 and replaying the sequence of commitment and HTLC transactions that led to the lock up.
+> LDK 0.0.125 and below are vulnerable to a liquidity griefing attack against
+> anchor channels. The attack locks up funds such that they can only be
+> recovered by manually constructing and broadcasting a valid claim transaction.
+> Affected users can unlock their funds by upgrading to LDK 0.1 and replaying
+> the sequence of commitment and HTLC transactions that led to the lock up.
 
 **Disclosure**: January 23, 2025
 
@@ -132,7 +166,11 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 [**CVE-2024-38365**](https://www.cve.org/CVERecord?id=CVE-2024-38365) (7.4)
 
-> The btcd Bitcoin client (versions 0.10 to 0.24) did not correctly re-implement Bitcoin Core's "FindAndDelete()" functionality. This logic is consensus-critical: the difference in behavior with the other Bitcoin clients can lead to btcd clients accepting an invalid Bitcoin block (or rejecting a valid one).
+> The btcd Bitcoin client (versions 0.10 to 0.24) did not correctly re-implement
+> Bitcoin Core's "FindAndDelete()" functionality. This logic is
+> consensus-critical: the difference in behavior with the other Bitcoin clients
+> can lead to btcd clients accepting an invalid Bitcoin block (or rejecting a
+> valid one).
 
 **Disclosure**: October 10, 2024
 
@@ -149,7 +187,8 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 [**CVE-2024-38359**](https://nvd.nist.gov/vuln/detail/CVE-2024-38359) (6.5)
 
-> A parsing vulnerability in lnd's onion processing logic led to a DoS vector due to excessive memory allocation.
+> A parsing vulnerability in lnd's onion processing logic led to a DoS vector
+> due to excessive memory allocation.
 
 **Disclosure**: June 18, 2024
 
@@ -163,7 +202,10 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## DoS: Channel Open Race in CLN
 
-> CLN versions between 23.02 and 23.05.2 are susceptible to a DoS attack involving the exploitation of a race condition during channel opens. If you are running any version in this range, your funds may be at risk! Update to at least 23.08 to help protect your node.
+> CLN versions between 23.02 and 23.05.2 are susceptible to a DoS attack
+> involving the exploitation of a race condition during channel opens. If you
+> are running any version in this range, your funds may be at risk! Update to at
+> least 23.08 to help protect your node.
 
 **Disclosure**: January 8, 2024
 
@@ -176,7 +218,10 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## Invoice Parsing Bugs in CLN
 
-> Several invoice parsing bugs were fixed in CLN 23.11, including bugs that caused crashes, undefined behavior, and use of uninitialized memory. These bugs could be reliably triggered by specially crafted invoices, enabling a malicious counterparty to crash the victim’s node upon invoice payment.
+> Several invoice parsing bugs were fixed in CLN 23.11, including bugs that
+> caused crashes, undefined behavior, and use of uninitialized memory. These
+> bugs could be reliably triggered by specially crafted invoices, enabling a
+> malicious counterparty to crash the victim’s node upon invoice payment.
 
 **Disclosure**: December 8, 2023
 
@@ -188,7 +233,8 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## DoS: Fake Lightning Channels
 
-> Lightning nodes are susceptible to a DoS attack involving the creation of large numbers of fake channels.
+> Lightning nodes are susceptible to a DoS attack involving the creation of
+> large numbers of fake channels.
 
 **Disclosure**: August 23, 2023
 
@@ -202,7 +248,13 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 [**CVE-2022-39389**](https://nvd.nist.gov/vuln/detail/CVE-2022-39389) (6.5-8.2)
 
-> All lnd nodes before version v0.15.4 are vulnerable to a block parsing bug that can cause a node to enter a degraded state once encountered. In this degraded state, nodes can continue to make payments and forward HTLCs, and close out channels. Opening channels is prohibited, and also on chain transaction events will be undetected. This can cause loss of funds if a CSV expiry is researched during a breach attempt or a CLTV delta expires forgetting the funds in the HTLC.
+> All lnd nodes before version v0.15.4 are vulnerable to a block parsing bug
+> that can cause a node to enter a degraded state once encountered. In this
+> degraded state, nodes can continue to make payments and forward HTLCs, and
+> close out channels. Opening channels is prohibited, and also on chain
+> transaction events will be undetected. This can cause loss of funds if a CSV
+> expiry is researched during a breach attempt or a CLTV delta expires
+> forgetting the funds in the HTLC.
 
 **Disclosure**: Nov 1, 2022
 
@@ -218,11 +270,16 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## Erroneous Witness Size Check
 
-> A bug would cause nodes to be unable to parse a given block from the wire. The block would be properly accepted if fed in via other mechanisms.
+> A bug would cause nodes to be unable to parse a given block from the wire. The
+> block would be properly accepted if fed in via other mechanisms.
 >
-> The issue here is that the old checks for the maximum witness size, circa segwit v0 where placed in the wire package _as well_ as the tx engine. This check should only be in the engine, since it's properly gated by other related scrip validation flags.
+> The issue here is that the old checks for the maximum witness size, circa
+> segwit v0 where placed in the wire package _as well_ as the tx engine. This
+> check should only be in the engine, since it's properly gated by other related
+> scrip validation flags.
 >
-> The fix itself is simple: limit witnesses only based on the maximum block size in bytes, or ~4MB.
+> The fix itself is simple: limit witnesses only based on the maximum block size
+> in bytes, or ~4MB.
 
 **Disclosure**: Oct 9, 2022
 
@@ -236,9 +293,14 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## Dust HTLC Exposure
 
-[**CVE-2021-41591**](https://nvd.nist.gov/vuln/detail/CVE-2021-41591) (9.4) | [**CVE-2021-41592**](https://nvd.nist.gov/vuln/detail/CVE-2021-41592) (9.4) | [**CVE-2021-41593**](https://nvd.nist.gov/vuln/detail/CVE-2021-41593) (8.6)
+[**CVE-2021-41591**](https://nvd.nist.gov/vuln/detail/CVE-2021-41591) (9.4) |
+[**CVE-2021-41592**](https://nvd.nist.gov/vuln/detail/CVE-2021-41592) (9.4) |
+[**CVE-2021-41593**](https://nvd.nist.gov/vuln/detail/CVE-2021-41593) (8.6)
 
-> The current BOLT specification only requires Alice's `dust_limit_satoshis` (applied on Alice's commitment) to be under Alice's `channel_reserve_satoshis` (applied on Bob). As those 2 parameters are selectable by Alice, she can inflate the dust limit until reaching the implementation-defined max value.
+> The current BOLT specification only requires Alice's `dust_limit_satoshis`
+> (applied on Alice's commitment) to be under Alice's `channel_reserve_satoshis`
+> (applied on Bob). As those 2 parameters are selectable by Alice, she can
+> inflate the dust limit until reaching the implementation-defined max value.
 
 **Disclosure**: Oct 4, 2021
 
@@ -250,9 +312,16 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 ## Missing Funding Transaction Output Check
 
-[**CVE-2019-12998**](https://nvd.nist.gov/vuln/detail/CVE-2019-12998) (7.5) | [**CVE-2019-12999**](https://nvd.nist.gov/vuln/detail/CVE-2019-12999) (7.5) | [**CVE-2019-13000**](https://nvd.nist.gov/vuln/detail/CVE-2019-13000) (7.5)
+[**CVE-2019-12998**](https://nvd.nist.gov/vuln/detail/CVE-2019-12998) (7.5) |
+[**CVE-2019-12999**](https://nvd.nist.gov/vuln/detail/CVE-2019-12999) (7.5) |
+[**CVE-2019-13000**](https://nvd.nist.gov/vuln/detail/CVE-2019-13000) (7.5)
 
-> A lightning node accepting a channel must check that the funding transaction output does indeed open the channel proposed. Otherwise an attacker can claim to open a channel but either not pay to the peer, or not pay the full amount. Once that transaction reaches the minimum depth, it can spend funds from the channel. The victim will only notice when it tries to close the channel and none of the commitment or mutual close transactions it has are valid. 
+> A lightning node accepting a channel must check that the funding transaction
+> output does indeed open the channel proposed. Otherwise an attacker can claim
+> to open a channel but either not pay to the peer, or not pay the full amount.
+> Once that transaction reaches the minimum depth, it can spend funds from the
+> channel. The victim will only notice when it tries to close the channel and
+> none of the commitment or mutual close transactions it has are valid.
 
 **Disclosure**: September 27, 2019
 
