@@ -14,6 +14,7 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 - [LND: Excessive Failback Exploit](#lnd-excessive-failback-exploit)
 - [LDK: Duplicate HTLC Force Close Griefing](#ldk-duplicate-htlc-force-close-griefing)
 - [LDK: Invalid Claims Liquidity Griefing](#ldk-invalid-claims-liquidity-griefing)
+- [OP_CODESEPARATOR fuzzy match](#op_codeseparator-fuzzy-match)
 - [DoS: LND Onion Bomb](#dos-lnd-onion-bomb)
 - [DoS: Channel Open Race in CLN](#dos-channel-open-race-in-cln)
 - [Invoice Parsing Bugs in CLN](#invoice-parsing-bugs-in-cln)
@@ -126,6 +127,23 @@ A list of lightning CVEs (Common Vulnerabilities and Exposures).
 
 - https://morehouse.github.io/lightning/ldk-invalid-claims-liquidity-griefing/
 - https://delvingbitcoin.org/t/disclosure-ldk-invalid-claims-liquidity-griefing/1400
+
+## OP_CODESEPARATOR fuzzy match
+
+[**CVE-2024-38365**](https://www.cve.org/CVERecord?id=CVE-2024-38365) (7.4)
+
+> The btcd Bitcoin client (versions 0.10 to 0.24) did not correctly re-implement Bitcoin Core's "FindAndDelete()" functionality. This logic is consensus-critical: the difference in behavior with the other Bitcoin clients can lead to btcd clients accepting an invalid Bitcoin block (or rejecting a valid one).
+
+**Disclosure**: October 10, 2024
+
+**Patched**: btcd v0.24.2
+
+**References**:
+
+- https://delvingbitcoin.org/t/cve-2024-38365-public-disclosure-btcd-findanddelete-bug/1184
+- https://github.com/btcsuite/btcd/pull/2178
+- https://github.com/btcsuite/btcd/security/advisories/GHSA-27vh-h6mc-q6g8
+
 
 ## DoS: LND Onion Bomb
 
