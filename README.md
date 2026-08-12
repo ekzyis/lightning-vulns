@@ -1,6 +1,6 @@
 # lightning-vulns
 
-A list of lightning CVEs (Common Vulnerabilities and Exposures).
+A list of security advisories for the Lightning Network
 
 > Because in the end it doesn’t matter how feature-rich and easy-to-use the
 > Lightning Network is if it can’t keep user funds safe.
