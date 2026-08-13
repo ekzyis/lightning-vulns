@@ -8,6 +8,12 @@ A list of security advisories for the Lightning Network
 ― Matt Morehouse, [_DoS: Fake Lightning
 Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 
+- [LND: HTLC First-Stage Sweep Failure Due to Wallet Budget Constraint](#lnd-htlc-first-stage-sweep-failure-due-to-wallet-budget-constraint)
+- [LND: Validation Barrier Map Leak via ChannelAnnouncement Spam](#lnd-validation-barrier-map-leak-via-channelannouncement-spam)
+- [LND: Gossip ChannelUpdate Suppression via Validation Barrier Poisoning](#lnd-gossip-channelupdate-suppression-via-validation-barrier-poisoning)
+- [LND: Gossip Query Denial of Service](#lnd-gossip-query-denial-of-service)
+- [LND: ChannelReestablish Message Queue Out-of-Memory](#lnd-channelreestablish-message-queue-out-of-memory)
+- [LND: Gossip Nil-Map Panic on Zero-Timestamp Messages](#lnd-gossip-nil-map-panic-on-zero-timestamp-messages)
 - [LND: Infinite Inbox DoS](#lnd-infinite-inbox-dos)
 - [LND: Excessive Failback Exploit #2](#lnd-excessive-failback-exploit-2)
 - [LND: Replacement Stalling Attack](#lnd-replacement-stalling-attack)
@@ -25,6 +31,145 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 - [Erroneous Witness Size Check](#erroneous-witness-size-check)
 - [Dust HTLC Exposure](#dust-htlc-exposure)
 - [Missing Funding Transaction Output Check](#missing-funding-transaction-output-check)
+
+## LND: HTLC First-Stage Sweep Failure Due to Wallet Budget Constraint
+
+> An anchor-channel peer could prevent a victim lnd node from recovering the
+> value of outgoing HTLCs after a force close.
+>
+> For anchor channels, the first-stage HTLC sweep transaction cannot be funded
+> from the HTLC output itself; lnd must contribute internal-wallet inputs to pay
+> for the sweep. To guard against fee-estimate uncertainty, lnd required at
+> minimum twice the HTLC amount to be available in the internal wallet before
+> attempting the sweep. Because lnd’s default configuration holds only the
+> anchor reserve (up to 100,000 sats) in the internal wallet, any outgoing HTLC
+> above approximately 50,000 sats could go unswept when a channel force-closes —
+> the budget check fails and no sweep is attempted.
+
+**Disclosure**: Aug 11, 2026
+
+**Patched**: lnd 0.19.0-beta (May 22, 2025)
+
+**References**:
+
+- https://lightning.community/SI/2026/08/11/lnd-htlc-sweep-budget-failure.html
+- https://github.com/lightningnetwork/lnd/pull/9068
+- https://github.com/lightningnetwork/lnd/pull/9274
+- https://github.com/lightningnetwork/lnd/pull/9627
+
+## LND: Validation Barrier Map Leak via ChannelAnnouncement Spam
+
+> Any peer, with no prior channel relationship, could exhaust a victim lnd
+> node’s memory by spamming `channel_announcement` messages. The gossiper’s
+> validation barrier initializes internal dependency maps
+> (`nodeAnnDependencies`, `chanEdgeDependencies`) for each incoming announcement
+> but failed to clean those maps up after processing. An attacker that sends a
+> continuous stream of `channel_announcement` messages fills the maps without
+> bound, eventually OOM-killing the process.
+>
+> There is no fund-loss path. The node restarts cleanly once the attacker
+> disconnects, but the attack can be repeated.
+
+**Disclosure**: Aug 11, 2026
+
+**Patched**: lnd 0.19.0-beta (May 22, 2025)
+
+**References**:
+
+- https://lightning.community/SI/2026/08/11/lnd-validation-barrier-oom.html
+
+## LND: Gossip ChannelUpdate Suppression via Validation Barrier Poisoning
+
+> Any peer, with no prior channel relationship, could suppress a victim lnd
+> node’s processing of `channel_update` or `node_announcement` messages for a
+> targeted short channel ID (SCID). The gossiper’s validation barrier gates
+> child messages on the successful completion of their parent
+> `channel_announcement` validation. An attacker sends many
+> `channel_announcement` messages carrying the target SCID but an incorrect
+> `chain_hash`; sending each from a different peer bypasses the `recentRejects`
+> cache, and every such announcement fails validation. Any legitimate
+> `channel_update` for that SCID that arrives while the poisoned announcements
+> are in flight is bound to the failing parent and is discarded. Whether a
+> specific legitimate update is caught in that window depends on timing, so the
+> attack succeeds probabilistically rather than deterministically; the sustained
+> spam is also observable as a broader gossip DoS.
+>
+> The victim will see elevated error-log volume in the gossiper. There is no
+> fund-loss path; affected routing-table entries degrade gracefully when stale,
+> and routing failures are the worst observable outcome.
+
+**Disclosure**: Aug 11, 2026
+
+**Patched**: lnd 0.19.0-beta (May 22, 2025)
+
+**References**:
+
+- https://lightning.community/SI/2026/08/11/lnd-gossip-update-suppression.html
+
+
+
+## LND: Gossip Query Denial of Service
+
+> A peer could render a victim lnd node unresponsive by sending a large volume
+> of gossip query messages. Without per-peer connection limits or bytes-based
+> rate limiting on gossip query processing, a sustained query stream from a
+> single peer could exhaust node resources and cause a denial of service.
+>
+> There is no fund-loss path. The node restarts cleanly, but the attack can be
+> repeated.
+
+**Disclosure**: Aug 11, 2026
+
+**Patched**: lnd 0.19.0-beta (May 22, 2025)
+
+**References**:
+
+- https://lightning.community/SI/2026/08/11/lnd-gossip-queries-dos.html
+
+## LND: ChannelReestablish Message Queue Out-of-Memory
+
+> A peer with pending channels open against a victim lnd node could exhaust the
+> node’s heap memory by spamming `channel_reestablish` messages. Each
+> connection’s `chanMsgStream` holds up to 1,000 queued messages; pending
+> channels do not drain that stream until the link becomes active. A single
+> attacker connection could therefore accumulate approximately 20 MB of heap.
+> Scaled across the maximum permitted number of pending channels, an attacker
+> could force the victim to allocate approximately 20 GB of heap memory,
+> OOM-killing the process.
+>
+> There is no fund-loss path. The node restarts cleanly, but the attack can be
+> resumed as long as the pending channel relationships remain.
+
+**Disclosure**: Aug 11, 2026
+
+**Patched**: lnd 0.19.0-beta (May 22, 2025)
+
+**References**:
+
+- https://lightning.community/SI/2026/08/11/lnd-channel-reestablish-oom.html
+
+## LND: Gossip Nil-Map Panic on Zero-Timestamp Messages
+
+> An unauthenticated peer could crash a victim lnd node by sending a
+> `channel_update` or `node_announcement` carrying a timestamp of 0. In the
+> gossiper’s announcement de-duplication path, a first-seen message with
+> timestamp 0 skips both the discard branch and the initialization branch and
+> falls through to an assignment into a nil senders map, triggering a panic
+> (“assignment to entry in nil map”) that crashes the node.
+>
+> There is no fund-loss path. The node restarts cleanly, but it can be crashed
+> again by repeating the attack.
+
+**Disclosure**: Jun 18, 2026
+
+**Patched**: lnd 0.20.1-beta (Feb 12, 2026)
+
+**References**:
+
+- https://nishantbansal2003.github.io/posts/LND-Zero-Timestamp-Gossip-DoS/
+- https://delvingbitcoin.org/t/lnd-zero-timestamp-gossip-dos-disclosure/2621
+- https://github.com/lightningnetwork/lnd/pull/10469
+- https://lightning.community/SI/2026/06/18/lnd-zero-timestamp-gossip-dos.html
 
 ## LND: Infinite Inbox DoS
 
@@ -113,6 +258,7 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 **References**:
 
 - https://morehouse.github.io/lightning/lnd-gossip-timestamp-filter-dos/
+- https://lightning.community/SI/2026/08/11/lnd-gossip-timestamp-filter-dos.html
 
 ## LND: Excessive Failback Exploit
 
@@ -182,7 +328,6 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 - https://github.com/btcsuite/btcd/pull/2178
 - https://github.com/btcsuite/btcd/security/advisories/GHSA-27vh-h6mc-q6g8
 
-
 ## DoS: LND Onion Bomb
 
 [**CVE-2024-38359**](https://nvd.nist.gov/vuln/detail/CVE-2024-38359) (6.5)
@@ -199,6 +344,7 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 - https://morehouse.github.io/lightning/lnd-onion-bomb/
 - https://github.com/lightningnetwork/lnd/security/advisories/GHSA-9gxx-58q6-42p7
 - https://delvingbitcoin.org/t/dos-disclosure-lnd-onion-bomb/979
+- https://lightning.community/SI/2024/06/20/lnd-onion-bomb.html
 
 ## DoS: Channel Open Race in CLN
 
@@ -252,9 +398,10 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 > that can cause a node to enter a degraded state once encountered. In this
 > degraded state, nodes can continue to make payments and forward HTLCs, and
 > close out channels. Opening channels is prohibited, and also on chain
-> transaction events will be undetected. This can cause loss of funds if a CSV
-> expiry is researched during a breach attempt or a CLTV delta expires
-> forgetting the funds in the HTLC.
+> transaction events will be undetected.
+>
+> This can cause loss of funds if a CSV expiry is researched during a breach
+> attempt or a CLTV delta expires forgetting the funds in the HTLC.
 
 **Disclosure**: Nov 1, 2022
 
@@ -267,6 +414,8 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 - https://github.com/lightningnetwork/lnd/pull/7098
 - https://github.com/btcsuite/btcd/pull/1907
 - https://github.com/lightningnetwork/lnd/security/advisories/GHSA-hc82-w9v8-83pr
+- https://lightning.community/SI/2022/11/17/witness-block-parsing-dos-vulnerability.html
+- https://github.com/lightningnetwork/lnd/releases/tag/v0.15.4-beta
 
 ## Erroneous Witness Size Check
 
