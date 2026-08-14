@@ -1,0 +1,161 @@
+From rusty at rustcorp.com.au  Fri Sep 27 12:01:46 2019
+From: rusty at rustcorp.com.au (Rusty Russell)
+Date: Fri, 27 Sep 2019 21:31:46 +0930
+Subject: [Lightning-dev] Full Disclosure: CVE-2019-12998 / CVE-2019-12999 /
+	CVE-2019-13000
+Message-ID: <87mueq6j85.fsf@rustcorp.com.au>
+
+Problem
+-------
+
+A lightning node accepting a channel must check that the funding transaction
+output does indeed open the channel proposed.  Otherwise an attacker can claim
+to open a channel but either not pay to the peer, or not pay the full amount.
+Once that transaction reaches the minimum depth, it can spend funds from the
+channel. The victim will only notice when it tries to close the channel and none 
+of the commitment or mutual close transactions it has are valid.
+
+Implementations did not always do this check:
+
+c-lightning: v0.7.1 and above do this correctly, prior versions never did.
+     (CVE-2019-12998)
+
+  - This can be exploited by a connecting peer and claiming to open a channel
+    with any transaction id.
+
+lnd: v0.7.1 and above do this correctly, prior versions did not check the
+     amount.  v0.7.0 and above properly check for the scriptpubkey, v0.6.x 
+     partially enforces the funding scriptpubkey, but pre-v0.6.0 did not verify
+     at all. (CVE-2019-12999)
+
+  - Exploiting via incorrect amount is possible against all prior versions. In
+    v0.7.0, the attacker must use the correct scriptpubkey, which burns the
+    coins in the funding output.
+  - Exploiting via incorrect scriptpubkey is possible on all versions prior to
+    v0.6.0.  This exploit is also possible in v0.6.x if the node is offline
+    when the funding transaction reached the required number of confirmations
+    and running with -txindex=0 on either full node backend.
+  - Exploiting neutrino users (usually mobile or laptop) with an incorrect
+    outpoint would require the attacker to collide their fake outpoint with
+    the script of the real outpoint in the BIP 158 filter. The siphash key
+    used to create the filters is derived from the blockhash. As a result, the
+    attacker cannot directly grind outpoints without also knowing the block
+    hash ahead of time. In addition, neutrino nodes are typically either
+    non-listening or do not have an advertised address, which means an
+    attacker would have to wait until receiving an inbound connection to
+    perform either exploit.
+
+eclair: v0.3.1 and above do this correctly, prior versions did not if using
+     the bitcoin core backend; electrum users only check the script, not the
+     amount.  (CVE-2019-13000)
+
+  - Exploiting Electrum users (on mobile) requires the user to actively
+    connect to a malicious Lightning node, and the attacker to use the correct
+    scriptpubkey, which burns the coins in the funding output. Since Eclair
+    Mobile doesn?t relay payments, the attacker can?t cash out without an
+    offband interaction (e.g. selling something to the user and paying with
+    the funds in the fake channel).
+
+
+Solution
+--------
+
+Once the funding transaction is seen, peers MUST check that the outpoint as
+described in `funding_created`[1] is a funding transaction output[2] with
+the amount described in `open_channel`[3].
+
+Background
+----------
+
+To open a channel, the funding peer sends `open_channel` with the proposed
+`funding_satoshis`.  The fundee replies with `accept_channel` providing the
+keys it wants to use for the funding transaction.
+
+Then the funder creates the funding transaction, and sends the transaction id
+and output number in a `funding_created` message.
+
+```
+        +-------+                              +-------+
+        |       |--(1)---  open_channel  ----->|       |
+        |       |<-(2)--  accept_channel  -----|       |
+        |       |                              |       |
+        |   A   |--(3)--  funding_created  --->|   B   |
+        |       |<-(4)--  funding_signed  -----|       |
+        |       |                              |       |
+        |       |--(5)--- funding_locked  ---->|       |
+        |       |<-(6)--- funding_locked  -----|       |
+        +-------+                              +-------+
+
+        - where node A is 'funder' and node B is 'fundee'
+```
+
+With this information, the fundee can create the signatures on the first
+"commitment transaction" and sends it in a `funding_signed` message so the
+funder can retrieve their funds should something go wrong.  It is then safe
+for the funder to sign and broadcast the opening transaction.  After some
+number of confirmations (set by the fundee), the channel is operational
+(`funding_locked`).
+
+The specification describes clearly the requirement to check that the various
+signatures exchanged indeed allow creation of a valid commitment transaction[4],
+and describes the requirement to wait for confirmations[5].
+
+It did NOT, however, require the receiver to actually check that the
+transaction is the one promised by the funder: both the amount and the actual
+scriptpubkey.
+
+
+Discovery
+---------
+
+Rusty Russell (Blockstream) discovered this while working on protocol
+tests for the specification itself, as part of an ongoing effort to
+test multiple new proposed features add new complexities.[6]
+
+The discovery occurred while writing tests for channel opening
+negotiation, in particular that invalid variants were rejected; while
+writing a test where the opener supplied an incorrect
+`funding_output_index` in the `funding_created` message, he realized
+that it would not be rejected by the c-lightning implementation, which
+only checked the confirmation count of the `funding_txid`, and not
+even whether the `funding_output_index` even existed!
+
+This requirement was not mentioned in the specification, so Rusty
+immediately disclosed the problem the authors of the other most widely
+used implementations (eclair and lnd).  Their own investigations
+revealed that they were similarly vulnerable in limited circumstances.
+
+Together the teams made the decision to fix this quietly for pending
+releases, then reveal the existence of a problem 8 weeks later, once
+most users had already upgraded.  Four weeks after that, the full
+disclosure would be made.
+
+While this long-standing bug had not been independently discovered, and thus
+was unlikely to be discovered by a malicious party before being fixed, it did
+provide an opportunity to test communications and methods of upgrade across
+the entire lightning ecosystem.
+
+
+Timeline
+--------
+
+2019-06-27: Bug discovered, LND and Eclair notified.
+2019-06-28: CVEs assigned.
+2019-07-02: lnd v0.7.0-beta released.
+2019-07-03: Eclair 0.3.1 released.
+2019-07-04: c-lightning 0.7.1 released.
+2019-07-06: disclosure to other projects begins (rust-lightning, ptarmigan, BLW).
+2019-07-30: lnd v0.7.1-beta released.
+2019-08-17: [Review next dates based on deployment stats/problems]
+2019-08-30: Reveal existence of CVEs, encourage laggards to upgrade.
+2019-09-07: First conclusive evidence of exploit attempt in the wild.
+2019-09-27: Full disclosure of CVEs.
+2019-09-27: Submit PR to spec to require this.
+
+[1] https://github.com/lightningnetwork/lightning-rfc/blob/v1.0/02-peer-protocol.md#the-funding_created-message
+[2] https://github.com/lightningnetwork/lightning-rfc/blob/v1.0/03-transactions.md#funding-transaction-output
+[3] https://github.com/lightningnetwork/lightning-rfc/blob/v1.0/02-peer-protocol.md#the-open_channel-message
+[4] https://github.com/lightningnetwork/lightning-rfc/blob/v1.0/02-peer-protocol.md#requirements-2
+[5] https://github.com/lightningnetwork/lightning-rfc/blob/v1.0/02-peer-protocol.md#the-funding_locked-message
+[6] https://github.com/ElementsProject/lightning-rfc-protocol-test
+

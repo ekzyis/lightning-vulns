@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Raw HTTP responses kept by the scraper; safe to delete at any time.
+.cache/

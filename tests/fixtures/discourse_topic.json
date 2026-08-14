@@ -1,0 +1,56 @@
+{
+  "post_stream": {
+    "posts": [
+      {
+        "username": "morehouse",
+        "created_at": "2024-06-18T17:48:35.668Z",
+        "cooked": "<p>LND versions prior to 0.17.0 are vulnerable to a DoS attack where malicious onion packets cause the node to instantly run out of memory (OOM) and crash. If you are running an LND release older than this, your funds are at risk! Update to at least <a href=\"https://github.com/lightningnetwork/lnd/releases/tag/v0.17.0-beta\" rel=\"noopener nofollow ugc\">0.17.0</a> to protect your node.</p>\n<h2><a name=\"p-2743-the-vulnerability-1\" class=\"anchor\" href=\"#p-2743-the-vulnerability-1\" aria-label=\"Heading link\"></a>The Vulnerability</h2>\n<p>When decoding onion payloads, LND did not do proper bounds checking on the decoded length of the payload.  The sender of the onion payload could set a length of up to 4 GB, and LND would allocate that much memory to decode the rest of the payload.</p>\n<p>By sending multiple malicious onion payloads, an attacker could cause LND nodes to OOM crash within seconds.  Due to onion routing, the source of the attack would be trivially concealed.</p>\n<h2><a name=\"p-2743-protecting-your-node-2\" class=\"anchor\" href=\"#p-2743-protecting-your-node-2\" aria-label=\"Heading link\"></a>Protecting Your Node</h2>\n<p>Update to at least LND <a href=\"https://github.com/lightningnetwork/lnd/releases/tag/v0.17.0-beta\" rel=\"noopener nofollow ugc\">0.17.0</a>, which added a bounds check on onion payload lengths.</p>\n<h2><a name=\"p-2743-more-details-3\" class=\"anchor\" href=\"#p-2743-more-details-3\" aria-label=\"Heading link\"></a>More Details</h2>\n<p>For more details about the vulnerability, root causes, and prevention, see my <a href=\"https://morehouse.github.io/lightning/lnd-onion-bomb/\" rel=\"noopener nofollow ugc\">blog post</a>.</p>",
+        "post_number": 1,
+        "link_counts": [
+          {
+            "url": "https://morehouse.github.io/lightning/lnd-onion-bomb/",
+            "internal": false,
+            "reflection": false,
+            "title": "DoS: LND Onion Bomb \u2013 Matt Morehouse",
+            "clicks": 53
+          },
+          {
+            "url": "https://github.com/lightningnetwork/lnd/releases/tag/v0.17.0-beta",
+            "internal": false,
+            "reflection": false,
+            "title": "Release lnd v0.17.0-beta \u00b7 lightningnetwork/lnd \u00b7 GitHub",
+            "clicks": 7
+          }
+        ]
+      },
+      {
+        "username": "ariard",
+        "created_at": "2024-06-18T23:22:13.257Z",
+        "cooked": "<p>I don\u2019t know if the vulnerability you\u2019re describing can be exploited in real-world conditions against LND nodes pre 0.17.0 or post 0.17.0</p>\n<p>The lightning specification (BOLT8) is already setting the maximum lightning message size at 65535 bytes (cf. <a href=\"https://github.com/lightning/bolts/blob/c562d91ace0e95bec3c6f8758969eaf3627f23c8/08-transport.md#lightning-message-specification\" class=\"inline-onebox\">bolts/08-transport.md at c562d91ace0e95bec3c6f8758969eaf3627f23c8 \u00b7 lightning/bolts \u00b7 GitHub</a>). LND Onion Bomb (onion paylaod &gt;= 4 GB) have to be carried on to the LND node either through a <code>update_add_htlc</code> (BOLT2) or <code>onion_message</code> (BOLT4). All those messages are encrypted under Noise_XK encrypted and authenticated transport.</p>\n<p>The protocol does not support messages fragmented over multiple transport frames so far. I don\u2019t know if the fuzz target has been written directly as a half-peer lightning connection stack.</p>",
+        "post_number": 2,
+        "link_counts": [
+          {
+            "url": "https://github.com/lightning/bolts/blob/c562d91ace0e95bec3c6f8758969eaf3627f23c8/08-transport.md#lightning-message-specification",
+            "internal": false,
+            "reflection": false,
+            "title": "bolts/08-transport.md at c562d91ace0e95bec3c6f8758969eaf3627f23c8 \u00b7 lightning/bolts \u00b7 GitHub",
+            "clicks": 5
+          }
+        ]
+      }
+    ]
+  },
+  "tags": [
+    {
+      "id": 4,
+      "name": "lightning",
+      "slug": "lightning"
+    }
+  ],
+  "id": 979,
+  "title": "DoS Disclosure: LND Onion Bomb",
+  "posts_count": 4,
+  "created_at": "2024-06-18T17:48:35.623Z",
+  "last_posted_at": "2024-06-18T23:38:56.939Z",
+  "slug": "dos-disclosure-lnd-onion-bomb"
+}
