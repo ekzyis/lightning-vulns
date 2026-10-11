@@ -8,9 +8,12 @@ A list of security advisories for the Lightning Network
 ― Matt Morehouse, [_DoS: Fake Lightning
 Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 
+- [Eclair: Unfunded Channel Flood via Channel ID Collision](#eclair-unfunded-channel-flood-via-channel-id-collision)
 - [Eclair: Channel Actor Leak via Open Channel Race](#eclair-channel-actor-leak-via-open-channel-race)
+- [btcd: Unbounded Message Payload Out-of-Memory](#btcd-unbounded-message-payload-out-of-memory)
 - [Eclair: Zlib Decompression Bomb DoS](#eclair-zlib-decompression-bomb-dos)
 - [Eclair: Feature Bit Parsing DoS](#eclair-feature-bit-parsing-dos)
+- [CLN: Ping Flood Out-of-Memory](#cln-ping-flood-out-of-memory)
 - [LND: HTLC First-Stage Sweep Failure Due to Wallet Budget Constraint](#lnd-htlc-first-stage-sweep-failure-due-to-wallet-budget-constraint)
 - [LND: Validation Barrier Map Leak via ChannelAnnouncement Spam](#lnd-validation-barrier-map-leak-via-channelannouncement-spam)
 - [LND: Gossip ChannelUpdate Suppression via Validation Barrier Poisoning](#lnd-gossip-channelupdate-suppression-via-validation-barrier-poisoning)
@@ -34,6 +37,47 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 - [Erroneous Witness Size Check](#erroneous-witness-size-check)
 - [Dust HTLC Exposure](#dust-htlc-exposure)
 - [Missing Funding Transaction Output Check](#missing-funding-transaction-output-check)
+
+## Eclair: Unfunded Channel Flood via Channel ID Collision
+
+> A peer could OOM-kill a victim eclair node, and leave it in a crash loop,
+> using channels it never funded. As fundee, eclair derives a channel’s
+> permanent id from the funding outpoint named in `funding_created` without
+> checking that the transaction exists, and the only validation is a commitment
+> signature the attacker can produce for free. Each exchange therefore buys a
+> fully persisted `WAIT_FOR_FUNDING_CONFIRMED` channel — a live actor, a
+> database row and an on-chain funding watch — that the victim holds for
+> `FUNDING_TIMEOUT_FUNDEE` (2016 blocks, about two weeks), at no on-chain cost
+> to the opener.
+>
+> `PendingChannelsRateLimiter` was the only defense, and two id-tracking bugs
+> walked straight past it. The `Peer` duplicate guard looked only in the
+> `TemporaryChannelId` keyspace, so an `open_channel` whose
+> `temporary_channel_id` reused a live channel’s final id matched nothing and
+> was accepted; and the limiter stored a flat sequence of ids that it pruned
+> with `filterNot`, which removes every matching entry, so re-keying a
+> duplicated id deleted two live channels from the count and appended only one.
+> Chaining each new `temporary_channel_id` to the previous channel’s final id
+> buries one more live pending channel per round while the counter just
+> oscillates between 1 and 2, never reaching the per-peer limit of 3. Setting a
+> single high odd feature bit in `init` inflates the `initFeatures` that eclair
+> persists with every channel from about 875 bytes to about 65 KB.
+>
+> The attack needs no channel, no funds and no prior relationship, so every
+> reachable eclair node was exposed. On a 16 GB host — about a 4 GB default JVM
+> heap — the node died after roughly 48 minutes with 217,623 rows in
+> `local_channels`. Because the fake channels are persisted, eclair respawns
+> them all on boot and runs out of memory again during startup, so the node
+> stays down until someone raises the heap or purges the rows by hand.
+
+**Disclosure**: Sep 30, 2026
+
+**Patched**: eclair 0.14.1 (Jul 29, 2026)
+
+**References**:
+
+- https://erickcestari.dev/blog/eclair-oom-pending-channels/
+- https://github.com/ACINQ/eclair/pull/3324
 
 ## Eclair: Channel Actor Leak via Open Channel Race
 
@@ -64,6 +108,43 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 
 - https://lnfuzz.org/advisories/eclair-open-channel-race-dos/
 - https://github.com/ACINQ/eclair/pull/3324
+
+## btcd: Unbounded Message Payload Out-of-Memory
+
+> Any peer that completed the version handshake could OOM-kill a btcd node by
+> declaring a 32 MiB payload. btcd checks an incoming header against a global
+> maximum and against the message type’s own `MaxPayloadLength` before
+> allocating the full declared length in one `make([]byte, hdr.length)`, but
+> three types — `alert`, `cfcheckpt` and `reject` — returned the global
+> `MaxMessagePayload` of 32 MiB as their per-type bound, so neither check
+> constrained anything. The underlying mistake was one constant doing two jobs:
+> a serialization bound for internal decoding and a network limit for
+> untrusted peers. Bitcoin Core split the two in 2015 after the same problem
+> (CVE-2015-3641) and has since retired `alert` and removed `reject`
+> altogether, but btcd still parsed both.
+>
+> One maximum-size buffer per connection across btcd’s default of 125 peer
+> slots is about 4 GB. On a VM with 2 CPU cores, 2 GB of RAM and 2 GB of swap,
+> 125 simulated peers sending 32 MiB `alert` messages exhausted both and the
+> node was killed by the OOM killer; `reject` reproduced it identically.
+> Nothing is persisted, so a restart recovers the node, but the same peers can
+> reconnect and repeat the attack. `alert` was removed and `cfcheckpt` given a
+> precise bound of about 3.2 MB in btcd v0.25.0; the general fix in v0.26.0
+> introduced a separate `MaxProtocolMessageLength` of 4 MB, enforced on all
+> four network read and write paths including the BIP324 v2 read path, and
+> lowered `reject` to match.
+
+**Disclosure**: Sep 29, 2026
+
+**Patched**: btcd v0.25.0 (Nov 4, 2025), btcd v0.26.0 (Jun 18, 2026)
+
+**References**:
+
+- https://erickcestari.dev/blog/btcd-reject-oom/
+- https://github.com/btcsuite/btcd/pull/2396
+- https://github.com/btcsuite/btcd/pull/2398
+- https://github.com/btcsuite/btcd/pull/2504
+- https://github.com/btcsuite/btcd/pull/2518
 
 ## Eclair: Zlib Decompression Bomb DoS
 
@@ -125,6 +206,38 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 
 - https://lnfuzz.org/advisories/eclair-feature-parsing-dos/
 - https://github.com/ACINQ/eclair/pull/3264
+
+## CLN: Ping Flood Out-of-Memory
+
+> Any peer could OOM-kill a victim cln node by flooding it with `ping` messages
+> and never reading the replies. The `connectd` read loop normally applies
+> backpressure by parking on a wake token until a subdaemon has drained its
+> queue, but the messages `connectd` answers by itself — `ping`,
+> `query_channel_range` and `query_short_channel_ids` — bypassed that gate and
+> read the next message immediately. Those are exactly the messages whose reply
+> size the sender picks: every `ping` with `num_pong_bytes = 65531` appends a
+> 65,531-byte `pong` to the per-peer outgoing queue, and a single
+> `query_channel_range` with the maximum `number_of_blocks` piles a whole
+> chain’s worth of gossip replies onto the same queue. An attacker that never
+> reads from its socket keeps the queue from draining, so it grows without
+> bound.
+>
+> The attack needs no funded channel and no valid gossip, only a completed
+> BOLT 8 handshake, so every reachable node was exposed. On a 2-core VM with
+> 2 GB of RAM and 2 GB of swap, one connection was enough to exhaust RAM and
+> swap and have `connectd` killed by the OOM killer. The fix routes locally
+> handled messages back through the gate and adds a socket-side waker so the
+> read loop stalls after a single queued reply instead of deadlocking.
+
+**Disclosure**: Aug 25, 2026
+
+**Patched**: cln 25.09 (Sep 2, 2025)
+
+**References**:
+
+- https://erickcestari.dev/blog/ping-flood-oom/
+- https://delvingbitcoin.org/t/disclosure-crashing-cln-with-a-flood-of-pings/2846
+- https://github.com/ElementsProject/lightning/pull/8525
 
 ## LND: HTLC First-Stage Sweep Failure Due to Wallet Budget Constraint
 
