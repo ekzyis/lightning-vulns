@@ -8,6 +8,9 @@ A list of security advisories for the Lightning Network
 ― Matt Morehouse, [_DoS: Fake Lightning
 Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 
+- [Eclair: Channel Actor Leak via Open Channel Race](#eclair-channel-actor-leak-via-open-channel-race)
+- [Eclair: Zlib Decompression Bomb DoS](#eclair-zlib-decompression-bomb-dos)
+- [Eclair: Feature Bit Parsing DoS](#eclair-feature-bit-parsing-dos)
 - [LND: HTLC First-Stage Sweep Failure Due to Wallet Budget Constraint](#lnd-htlc-first-stage-sweep-failure-due-to-wallet-budget-constraint)
 - [LND: Validation Barrier Map Leak via ChannelAnnouncement Spam](#lnd-validation-barrier-map-leak-via-channelannouncement-spam)
 - [LND: Gossip ChannelUpdate Suppression via Validation Barrier Poisoning](#lnd-gossip-channelupdate-suppression-via-validation-barrier-poisoning)
@@ -31,6 +34,97 @@ Channels_](https://morehouse.github.io/lightning/fake-channel-dos/)
 - [Erroneous Witness Size Check](#erroneous-witness-size-check)
 - [Dust HTLC Exposure](#dust-htlc-exposure)
 - [Missing Funding Transaction Output Check](#missing-funding-transaction-output-check)
+
+## Eclair: Channel Actor Leak via Open Channel Race
+
+> A peer could exhaust a victim eclair node’s memory by racing duplicate
+> `open_channel` messages. Eclair rejected a duplicate `temporary_channel_id`
+> by consulting the peer’s channel map, but the new channel was only inserted
+> into that map after an asynchronous round trip through the
+> `OpenChannelInterceptor`. Two pipelined `open_channel` messages carrying the
+> same `temporary_channel_id` could both pass the check and both spawn a
+> channel actor; the second insertion overwrote the first, orphaning a channel
+> actor that held roughly 25 KB of heap until the peer disconnected. The
+> pending-channel limit did not stop the attack: sending a single `error` for
+> the repeated `temporary_channel_id` made `PendingChannelsRateLimiter` reclaim
+> every matching slot while only the non-orphaned actor shut down.
+>
+> At roughly 1 MB leaked per second, a sustained attack took about four hours
+> to either OOM-kill the JVM or drive garbage collection into a death spiral
+> that pegged every core. The leaked memory is freed when the attacker
+> disconnects, and the node recovers with nothing lost, but the attack can be
+> repeated. Four hours leaves ample time to handle on-chain events, so the risk
+> to funds is low.
+
+**Disclosure**: Sep 30, 2026
+
+**Patched**: eclair 0.14.1 (Jul 29, 2026)
+
+**References**:
+
+- https://lnfuzz.org/advisories/eclair-open-channel-race-dos/
+- https://github.com/ACINQ/eclair/pull/3324
+
+## Eclair: Zlib Decompression Bomb DoS
+
+> Any peer could exhaust a victim eclair node’s CPU and memory with
+> zlib-compressed channel queries. BOLT 7 retired the zlib `encoded_short_ids`
+> encoding in April 2022, but eclair kept accepting it on receive and inflated
+> it with no bound on the output size. A 64 KB `query_short_channel_ids`
+> message of zeroes decompresses to roughly 64 MB and decodes into ~8.4 million
+> `RealShortChannelId` objects, each with its own list cons cell — about 450 MB
+> of allocation for a single message. `reply_channel_range` reaches the same
+> codec and works equally well as a delivery mechanism.
+>
+> Flooding such messages over a few dozen connections disconnected legitimate
+> peers within seconds, stalled the API, delayed block processing, and ran the
+> JVM out of memory within minutes. The node came back on restart with nothing
+> lost, but the attack can be repeated, and a sustained attack could keep
+> eclair from reacting to on-chain events in time, putting funds at risk. LDK
+> never implemented zlib, CLN bounded decompressed output at 1 MB before
+> removing the feature in 24.08, and lnd bounds the work with a global decode
+> mutex, a 100,000 short-channel-ID cap, and a strictly-ascending requirement
+> that rejects an all-zero payload.
+
+**Disclosure**: Sep 24, 2026
+
+**Patched**: eclair 0.14.0 (May 21, 2026)
+
+**References**:
+
+- https://lnfuzz.org/advisories/eclair-zlib-decompression-dos/
+- https://github.com/ACINQ/eclair/pull/3263
+- https://github.com/lightning/bolts/pull/981
+
+## Eclair: Feature Bit Parsing DoS
+
+> Any peer could exhaust a victim eclair node’s CPU and memory with
+> maximum-length feature vectors. `Features.apply` parsed feature bits one at a
+> time, iterating the same bits six times and allocating several heap objects
+> for every bit that is set, so a single `init` message with a ~64 KB feature
+> vector churned ~300 MB through the heap and occupied a parsing thread for up
+> to 300 ms. Three properties of the surrounding code multiply the cost:
+> messages are decoded in `TransportHandler` before any downstream actor can
+> reject them, `TransportHandler` uses the parsed message as a map key so every
+> insert and lookup walks all the bits again, and an `init` arriving on an
+> already-initialized connection is logged in full, rendering each unknown bit
+> as a decimal index and writing a 3.5 MB line to disk. `node_announcement` and
+> `channel_announcement` carry feature vectors through the same codec.
+>
+> Flooding such messages over a few dozen connections took the node off the
+> network in under a minute and killed the JVM in under five. The node came
+> back on restart with nothing lost, but the attack can be repeated, and a
+> sustained attack could keep eclair from reacting to on-chain events in time,
+> putting funds at risk.
+
+**Disclosure**: Sep 24, 2026
+
+**Patched**: eclair 0.14.0 (May 21, 2026)
+
+**References**:
+
+- https://lnfuzz.org/advisories/eclair-feature-parsing-dos/
+- https://github.com/ACINQ/eclair/pull/3264
 
 ## LND: HTLC First-Stage Sweep Failure Due to Wallet Budget Constraint
 
